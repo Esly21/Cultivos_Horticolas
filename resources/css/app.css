@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+/* --- CÓDIGO PARA TARJETAS CON ANIMACIÓN (CON COLOR DINÁMICO) --- */
+
+.stats-card p.small {
+  font-size: 14px;
+  color: #6b7280; /* text-gray-500 */
+}
+.stats-card .value {
+    font-size: 1.5rem; /* 2xl */
+    font-weight: 700; /* bold */
+    color: #1f2937; /* text-gray-800 */
+}
+.stats-card h3 {
+  font-size: 0.875rem; /* sm */
+  font-weight: 500; /* medium */
+  color: #6b7280; /* text-gray-500 */
+}
+
+.stats-card {
+  display: block;
+  position: relative;
+  text-decoration: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+/* El círculo de la animación */
+.stats-card:before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  
+  /* CAMBIO AQUÍ: Posiciona el círculo en la esquina del icono */
+  top: 1.25rem;  /* 20px (ajustado para padding p-4) */
+  right: 1.25rem; /* 20px (ajustado para padding p-4) */
+  
+  background: var(--card-color, #00838d);
+  height: 32px;
+  width: 32px;
+  border-radius: 32px;
+  transform: scale(1);
+  transform-origin: 50% 50%;
+  transition: transform 0.25s ease-out;
+}
+
+.stats-card:hover:before {
+  transform: scale(21);
+}
+
+/* --- SE ELIMINÓ .go-corner y .go-arrow --- */
+
+.stats-card:hover p.small,
+.stats-card:hover h3,
+.stats-card:hover .value {
+  transition: all 0.3s ease-out;
+  color: #fff;
+}
+
+/* Oculta el icono original al pasar el cursor */
+.stats-card:hover .icon-container {
+    opacity: 0;
+    transition: opacity 0.2s ease-out;
+}
