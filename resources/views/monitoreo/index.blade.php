@@ -18,6 +18,7 @@
                     <option value="24">Últimas 24 horas</option>
                     <option value="72">Últimas 72 horas</option>
                     <option value="168">Últimos 7 días</option>
+                    <option value="720">Últimos 30 días</option>
                 </select>
             </div>
         </div>
@@ -33,9 +34,6 @@
             </x-metric-card>
             <x-metric-card icon="sun" title="Luminosidad" unit=" lux" color="yellow">
                 <span x-text="lux.toFixed(0)"></span>
-            </x-metric-card>
-            <x-metric-card icon="wind" title="pH del Suelo" unit="" color="purple">
-                <span x-text="ph.toFixed(1)"></span>
             </x-metric-card>
         </div>
 
@@ -113,16 +111,15 @@
         </div>
 
     </div>
-
-    {{-- Chart.js --}}
+{{-- Incluye Chart.js --}}
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    {{-- Lógica Alpine.js --}}
+    {{-- Lógica Alpine.js Corregida --}}
     <script>
         function dashboard() {
             return {
                 siembraId: {{ $siembras->first()->id ?? 'null' }},
-                filtroTiempo: '24', // horas
+                filtroTiempo: '24',
                 temperatura: 0,
                 humedad: 0,
                 ph: 0,
@@ -156,6 +153,7 @@
                 fetchData() {
                     if (!this.siembraId) return;
 
+                    // CORRECCIÓN 1: Agregamos '/' al inicio para asegurar la ruta correcta
                     fetch(`/monitoreo/latest/${this.siembraId}`)
                         .then(response => response.json())
                         .then(data => {
@@ -164,14 +162,16 @@
                             this.ph = parseFloat(data.ph_suelo) || 0;
                             this.lux = parseFloat(data.luminosidad_lux) || 0;
 
-                            if (data.humedad_suelo && data.humedad_suelo.length === 4) {
-                                this.charola1 = parseFloat(data.humedad_suelo[0]) || 0;
-                                this.charola2 = parseFloat(data.humedad_suelo[1]) || 0;
-                                this.charola3 = parseFloat(data.humedad_suelo[2]) || 0;
-                                this.charola4 = parseFloat(data.humedad_suelo[3]) || 0;
-                            }
-                            this.ventilador = data.ventilador_activo || false;
-                            this.riego = data.riego_activo || false;
+                            // CORRECCIÓN 2: Mapeo correcto de los campos planos de la base de datos
+                            // El controlador ahora envía 'humedad_charola1', no un array.
+                            this.charola1 = parseFloat(data.humedad_charola1) || 0;
+                            this.charola2 = parseFloat(data.humedad_charola2) || 0;
+                            this.charola3 = parseFloat(data.humedad_charola3) || 0;
+                            this.charola4 = parseFloat(data.humedad_charola4) || 0;
+                            
+                            // Mapeo de actuadores (convirtiendo a booleano por seguridad)
+                            this.ventilador = Boolean(data.ventilador_activo);
+                            this.riego = Boolean(data.riego_activo);
                         })
                         .catch(console.error);
                 },
@@ -179,10 +179,14 @@
                 fetchHistorico() {
                     if (!this.siembraId) return;
 
+                    // CORRECCIÓN 3: Agregamos '/' al inicio
                     fetch(`/monitoreo/historico/${this.siembraId}?hours=${this.filtroTiempo}`)
                         .then(res => res.json())
                         .then(data => {
                             const maxLabels = 20;
+                            // Evitar error si no hay datos
+                            if (!data || data.length === 0) return;
+
                             const sliceStep = Math.max(Math.floor(data.length / maxLabels), 1);
                             const filteredData = data.filter((_, i) => i % sliceStep === 0);
 
@@ -192,7 +196,10 @@
                             const phs = filteredData.map(d => d.ph_suelo);
 
                             if (!this.chartTendencias) {
-                                const ctx = document.getElementById('chartTendencias').getContext('2d');
+                                const canvas = document.getElementById('chartTendencias');
+                                if (!canvas) return; 
+                                
+                                const ctx = canvas.getContext('2d');
                                 this.chartTendencias = new Chart(ctx, {
                                     type: 'line',
                                     data: {
@@ -200,7 +207,7 @@
                                         datasets: [
                                             { label: 'Temperatura (°C)', data: temperaturas, borderColor: '#EF4444', fill: false, tension: 0.3, pointRadius: 2 },
                                             { label: 'Humedad (%)', data: humedades, borderColor: '#3B82F6', fill: false, tension: 0.3, pointRadius: 2 },
-                                            { label: 'pH', data: phs, borderColor: '#8B5CF6', fill: false, tension: 0.3, pointRadius: 2 }
+                                            
                                         ]
                                     },
                                     options: {
@@ -220,7 +227,6 @@
                         })
                         .catch(console.error);
                 },
-
             }
         }
     </script>

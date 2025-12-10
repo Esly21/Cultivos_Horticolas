@@ -14,23 +14,47 @@ class DashboardController extends Controller
      */
     public function index()
     {
+        $userId = auth()->id();
+
         $stats = [
-            'totalSiembras' => Siembra::count(),
-            'siembrasActivas' => Siembra::where('estado_siembra_id', 1)->count(), // Suponiendo ID 1 = Activa
-            'totalCultivos' => Cultivo::count(),
-            'alertasPendientes' => Alerta::where('leida', false)->count(),
-            'inversionTotal' => Siembra::sum('inversion'),
-            'ingresosEstimados' => 0, // Necesitarías una tabla de cosechas para esto
+            'totalSiembras'    => Siembra::where('user_id', $userId)->count(),
+            'siembrasActivas'  => Siembra::where('user_id', $userId)
+                                         ->where('estado_siembra_id', 1)->count(),
+            'totalCultivos'    => Cultivo::count(), // si cultivos son globales, dejar así; si no, filtra por user
+            'alertasPendientes'=> Alerta::whereHas('siembra', fn($q) => $q->where('user_id', $userId))
+                                       ->where('leida', false)->count(),
+            'inversionTotal'   => Siembra::where('user_id', $userId)->sum('inversion'),
+            'ingresosEstimados'=> 0,
         ];
-        $siembrasRecientes = Siembra::with('cultivo')->latest()->take(5)->get();
-        $alertasRecientes = Alerta::latest()->take(5)->get();
-        // Datos para el monitor ambiental (simplificado)
-        $variablesAmbientales = VariableAmbiental::latest()->take(20)->get();
 
-        return view('dashboard', compact('stats', 'siembrasRecientes', 'alertasRecientes', 'variablesAmbientales'));
-    
+        $siembrasRecientes = Siembra::where('user_id', $userId)
+            ->with('cultivo')
+            ->latest()
+            ->take(5)
+            ->get();
+
+        $alertasRecientes = Alerta::whereHas('siembra', fn($q) => $q->where('user_id', $userId))
+            ->latest()
+            ->take(5)
+            ->get();
+
+        $ultimoMonitoreo = VariableAmbiental::latest('fecha_hora')->first();
+        if (!$ultimoMonitoreo) {
+            $ultimoMonitoreo = new VariableAmbiental([
+                'temperatura'       => 0,
+                'humedad'           => 0,
+                'luminosidad_lux'   => 0,
+                'ph_suelo'          => 0,
+            ]);
+        }
+
+        return view('dashboard', compact(
+            'stats',
+            'siembrasRecientes',
+            'alertasRecientes',
+            'ultimoMonitoreo'
+        ));
     }
-
     /**
      * Show the form for creating a new resource.
      */

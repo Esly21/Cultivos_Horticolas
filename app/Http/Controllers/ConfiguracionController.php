@@ -5,6 +5,10 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\TipoCultivo;
 use App\Models\EstadoSiembra;
+use App\Models\TipoSuelo;
+use App\Models\Periodo;
+use App\Models\Rango;
+use App\Models\Dimension;
 class ConfiguracionController extends Controller
 {
     /**
@@ -15,7 +19,11 @@ class ConfiguracionController extends Controller
         $user = auth()->user();
         $tiposCultivo = TipoCultivo::all();
         $estadosSiembra = EstadoSiembra::all();
-        return view('configuracion.index', compact('user', 'tiposCultivo', 'estadosSiembra'));
+        $tiposSuelo = TipoSuelo::all();
+        $periodos = Periodo::all();
+        $rangos = Rango::all();
+        $dimensiones = Dimension::all();
+        return view('configuracion.index', compact('user', 'tiposCultivo', 'estadosSiembra', 'tiposSuelo', 'periodos', 'rangos', 'dimensiones'));
     }
 
     /**

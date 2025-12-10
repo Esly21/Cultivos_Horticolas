@@ -30,6 +30,8 @@ class VariableAmbiental extends Model
     {
         return [
             'fecha_hora' => 'datetime',
+            'ventilador_activo' => 'boolean',
+            'riego_activo' => 'boolean',
         ];
     }
 

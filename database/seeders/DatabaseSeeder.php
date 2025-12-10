@@ -19,7 +19,12 @@ class DatabaseSeeder extends Seeder
             TipoUsuarioSeeder::class,
             TipoCultivoSeeder::class,
             EstadoSiembraSeeder::class,
-            
+            CalidadCosechaSeeder::class, 
+            TipoSueloSeeder::class,
+            TipoSiembraSeeder::class,
+            DimensionSeeder::class,
+            RangoSeeder::class,
+            PeriodoSeeder::class,
         ]);
 
         //User::factory()->create([

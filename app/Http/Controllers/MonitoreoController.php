@@ -13,7 +13,8 @@ class MonitoreoController extends Controller
      */
     public function index()
     {
-        $siembras = Siembra::where('estado_siembra_id', 1)
+        $siembras = Siembra::where('user_id', auth()->id())
+            ->where('estado_siembra_id', 1)
             ->with('ultimaLectura')
             ->get();
 

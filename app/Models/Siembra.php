@@ -10,6 +10,8 @@ use App\Models\User;
 use App\Models\Cultivo;
 use App\Models\EstadoSiembra;
 use App\Models\Bitacora;
+use App\Models\EvaluacionRendimiento;
+
 class Siembra extends Model
 {
     use HasFactory;
@@ -72,4 +74,8 @@ class Siembra extends Model
     {
         return $this->hasMany(Alerta::class, 'siembra_id', 'id');
     }
+    public function evaluacionRendimiento()
+    {
+    return $this->hasOne(EvaluacionRendimiento::class);
+}
 }

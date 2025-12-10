@@ -1,18 +1,19 @@
 <aside class="w-64 min-h-screen bg-white border-r flex flex-col">
+
     <div class="p-6 border-b">
-    <a href="{{ route('dashboard') }}" class="flex items-center gap-3">
-        <div class="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-500 rounded-lg flex items-center justify-center">
-            <i data-lucide="leaf" class="text-white"></i>
-        </div>
-        <div>
-            {{-- TAMAÑO DE TEXTO AUMENTADO AQUÍ --}}
-            <h1 class="font-bold text-gray-800 text-xl">SmartGarden</h1>
-            <p class="text-sm text-green-500">Gestión Inteligente</p>
-        </div>
-    </a>
-</div>
+        <a href="{{ route('dashboard') }}" class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-500 rounded-lg flex items-center justify-center">
+                <i data-lucide="leaf" class="text-white"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-gray-800 text-xl">SmartGarden</h1>
+                <p class="text-sm text-green-500">Gestión Inteligente</p>
+            </div>
+        </a>
+    </div>
 
     <nav class="flex-1 p-4 space-y-2">
+
         <x-nav-link 
             :href="route('dashboard')" 
             :active="request()->routeIs('dashboard')" 
@@ -46,10 +47,7 @@
             :active="request()->routeIs('alertas.*')" 
             icon="bell" 
             title="Alertas" 
-            description="Notificaciones">
-            {{-- La insignia de notificación se pasa como contenido del slot 
-            <span class="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full"></span>--}}
-        </x-nav-link>
+            description="Notificaciones" />
 
         <x-nav-link 
             :href="route('reportes.index')" 
@@ -57,12 +55,22 @@
             icon="file-text" 
             title="Reportes" 
             description="Bitácoras y reportes" />
-            <x-nav-link 
+
+        <x-nav-link 
+            :href="route('evaluaciones.index')" 
+            :active="request()->routeIs('evaluaciones.*')" 
+            icon="clipboard-check"
+            title="Evaluaciones" 
+            description="Resultados de cosecha" />
+
+        <!-- ESTE ERA EL QUE ESTABA MAL ANIDADO -->
+        <x-nav-link 
             :href="route('configuracion.index')" 
             :active="request()->routeIs('configuracion.*')" 
             icon="settings" 
             title="Configuración" 
             description="Ajustes del sistema" />
+
     </nav>
 
     <div class="p-4 border-t">
@@ -79,10 +87,11 @@
         <form method="POST" action="{{ route('logout') }}" class="mt-2">
             @csrf
             <a href="{{ route('logout') }}"
-                    onclick="event.preventDefault(); this.closest('form').submit();"
-                    class="text-xs text-red-500 hover:underline ml-1">
+               onclick="event.preventDefault(); this.closest('form').submit();"
+               class="text-xs text-red-500 hover:underline ml-1">
                 Cerrar Sesión
             </a>
         </form>
     </div>
+
 </aside>

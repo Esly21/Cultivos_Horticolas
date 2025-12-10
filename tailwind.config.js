@@ -1,6 +1,6 @@
 import defaultTheme from 'tailwindcss/defaultTheme';
 import forms from '@tailwindcss/forms';
-const colors = require('tailwindcss/colors'); // <-- Añade esta línea
+const colors = require('tailwindcss/colors');
 
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -8,11 +8,16 @@ export default {
         './vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php',
         './storage/framework/views/*.php',
         './resources/views/**/*.blade.php',
+
+        // ⭐ IMPORTANTE → AGREGA ESTO:
+        './resources/**/*.js',
+        './resources/**/*.vue',
+        './resources/**/*.css',   // <-- NECESARIO PARA QUE APP.CSS SE COMPILLE
     ],
 
     theme: {
         extend: {
-            colors: { // <-- Añade esta sección
+            colors: {
                 emerald: colors.emerald,
             },
             fontFamily: {

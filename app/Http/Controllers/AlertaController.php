@@ -11,79 +11,51 @@ class AlertaController extends Controller
      */
     public function index(Request $request)
     {
-        // 1. Calcular las estadísticas para las tarjetas superiores
+        $userId = auth()->id();
+
+        // Estadísticas solo del usuario
         $stats = [
-            'pendientes' => Alerta::where('leida', false)->count(),
-            'criticas' => Alerta::where('severidad', 'critical')->where('leida', false)->count(),
-            'advertencias' => Alerta::where('severidad', 'warning')->where('leida', false)->count(),
-            'resueltas' => Alerta::where('leida', true)->count(),
+            'pendientes'   => Alerta::whereHas('siembra', fn($q) => $q->where('user_id', $userId))
+                                    ->where('leida', 0)->count(),
+            'criticas'     => Alerta::whereHas('siembra', fn($q) => $q->where('user_id', $userId))
+                                    ->where('severidad', 'critical')->where('leida', 0)->count(),
+            'advertencias' => Alerta::whereHas('siembra', fn($q) => $q->where('user_id', $userId))
+                                    ->where('severidad', 'warning')->where('leida', 0)->count(),
+            'resueltas'    => Alerta::whereHas('siembra', fn($q) => $q->where('user_id', $userId))
+                                    ->where('leida', 1)->count(),
         ];
 
-        // 2. Iniciar la consulta para la lista de alertas
-        $query = Alerta::query();
+        // Consulta principal filtrada
+        $query = Alerta::whereHas('siembra', fn($q) => $q->where('user_id', $userId))
+                       ->with('siembra')
+                       ->orderBy('fecha', 'desc');
 
-        // 3. Aplicar filtros
-        if ($search = $request->input('search')) {
-            $query->where('mensaje', 'like', "%{$search}%");
+        // Filtro búsqueda
+        if ($request->filled('search')) {
+            $query->where('mensaje', 'like', '%' . $request->search . '%');
         }
-        if ($severidad = $request->input('severidad')) {
-            if ($severidad !== 'all') {
-                $query->where('severidad', $severidad);
+
+        // Filtro severidad
+        if ($request->filled('severidad') && $request->severidad !== 'all') {
+            $query->where('severidad', $request->severidad);
+        }
+
+        // Filtro estado (pendientes / resueltas)
+        if ($request->filled('estado_alerta')) {
+            if ($request->estado_alerta === 'resueltas') {
+                $query->where('leida', 1);
+            } else {
+                // caso por defecto: pendientes
+                $query->where('leida', 0);
             }
+        } else {
+            // Si no viene el filtro, mostrar pendientes
+            $query->where('leida', 0);
         }
 
-        // 4. Obtener resultados y paginar
-        $alertas = $query->latest('fecha')->paginate(10);
+        // Paginación
+        $alertas = $query->paginate(10);
 
-        // 5. Enviar todo a la vista
         return view('alertas.index', compact('alertas', 'stats'));
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
     }
 }

@@ -10,30 +10,32 @@ class ReporteController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+  public function index(Request $request)
     {
-        // Inicia la consulta con las relaciones necesarias
-        $query = Bitacora::with('siembra.cultivo');
+        $userId = auth()->id();
 
-        // Aplica el filtro de búsqueda si existe
+        // Filtrar por siembras del usuario
+        $query = Bitacora::with('siembra.cultivo')
+            ->whereHas('siembra', fn($q) => $q->where('user_id', $userId));
+
+        // Filtro búsqueda
         if ($search = $request->input('search')) {
             $query->where('observaciones', 'like', "%{$search}%");
         }
-        
-        // Obtiene la colección de bitácoras antes de paginar para los cálculos
+
+        // Estadísticas
         $allBitacoras = $query->get();
 
-        // Calcula las estadísticas
         $stats = [
-            'total' => $allBitacoras->count(),
-            'thisWeek' => $allBitacoras->where('fecha_seguimiento', '>=', Carbon::now()->subDays(7))->count(),
-            'avgTemp' => $allBitacoras->avg('temperatura_actual'),
+            'total'       => $allBitacoras->count(),
+            'thisWeek'    => $allBitacoras->where('fecha_seguimiento', '>=', Carbon::now()->subDays(7))->count(),
+            'avgTemp'     => $allBitacoras->avg('temperatura_actual'),
             'avgHumidity' => $allBitacoras->avg('humedad_actual'),
         ];
 
-        // Ahora, obtén la versión paginada de la consulta para mostrar en la lista
+        // Paginación
         $bitacoras = $query->latest('fecha_seguimiento')->paginate(6);
-        
+
         return view('reportes.index', compact('bitacoras', 'stats'));
     }
 

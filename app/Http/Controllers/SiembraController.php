@@ -8,7 +8,8 @@ use App\Models\Cultivo;
 use App\Models\EstadoSiembra;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule; // Asegúrate de importar esta clase
-
+use App\Models\TipoSuelo;
+use App\Models\CalidadCosecha;
 class SiembraController extends Controller
 {
     public function index(Request $request)
@@ -35,9 +36,10 @@ class SiembraController extends Controller
         // 5. Obtiene los datos para los menús desplegables del formulario
         $cultivos = Cultivo::orderBy('nombre_comun')->get();
         $estados = EstadoSiembra::all();
-
+        $tiposSuelo = TipoSuelo::all();
+        $calidades = CalidadCosecha::all();
         // 6. Envía todas las variables a la vista
-        return view('siembras.index', compact('siembras', 'cultivos', 'estados'));
+        return view('siembras.index', compact('siembras', 'cultivos', 'estados', 'tiposSuelo', 'calidades'));
     }
 
     public function store(Request $request)
