@@ -27,6 +27,8 @@ class Alerta extends Model
 
     public function siembra()
     {
-        return $this->belongsTo(Siembra::class);
+         return $this->belongsTo(Siembra::class)
+                    ->where('user_id', auth()->id());
+    
     }
 }

@@ -11,6 +11,12 @@ use App\Models\Rango;
 use App\Models\Dimension;
 use App\Models\User;
 use App\Models\TipoUsuario;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
+use App\Models\TipoSiembra;
 class ConfiguracionController extends Controller
 {
     /**
@@ -25,7 +31,8 @@ class ConfiguracionController extends Controller
         $periodos = Periodo::all();
         $rangos = Rango::all();
         $dimensiones = Dimension::all();
-        return view('configuracion.index', compact('user', 'tiposCultivo', 'estadosSiembra', 'tiposSuelo', 'periodos', 'rangos', 'dimensiones'));
+        $tiposSiembra = TipoSiembra::all();
+        return view('configuracion.index', compact('user', 'tiposCultivo', 'estadosSiembra', 'tiposSuelo', 'periodos', 'rangos', 'dimensiones','tiposSiembra'));
     }
 
     /**

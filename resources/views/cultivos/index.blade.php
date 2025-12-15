@@ -58,7 +58,7 @@
                     <h2 class="text-2xl font-bold text-gray-800">Nuevo Cultivo</h2>
                 </div>
                 <div class="p-6">
-                    <x-cultivo-form :tiposCultivo="$tiposCultivo" />
+                    <x-cultivo-form  :tiposCultivo="$tiposCultivo" :tiposSiembra="$tiposSiembra" :periodos="$periodos" :rangos="$rangos" :dimensiones="$dimensiones"/>
                 </div>
             </div>
         </div>

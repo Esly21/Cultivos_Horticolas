@@ -8,5 +8,6 @@ class Rango extends Model
 {
     use HasFactory;
     protected $table = 'rangos'; // Nombre de tu tabla en la BD
+    protected $primaryKey = 'id_rango'; // Clave primaria si no es 'id'
     protected $fillable = ['nombre'];
 }

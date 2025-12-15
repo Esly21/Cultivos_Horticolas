@@ -1,4 +1,11 @@
-@props(['tiposCultivo'])
+@props([
+    'tiposCultivo',
+    'tiposSiembra',
+    'periodos',
+    'rangos',
+    'dimensiones'
+])
+
 <form action="{{ route('cultivos.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
     @csrf
 
@@ -14,10 +21,12 @@
                 <input type="text" name="nombre_comun" id="nombre_comun" class="block mt-1 w-full rounded-md shadow-sm border-gray-300" placeholder="Ej: Tomate" required>
             </div>
         </div>
+
         <div class="mt-4">
             <label for="descripcion" class="block font-medium text-sm text-gray-700">Descripción</label>
             <textarea name="descripcion" id="descripcion" rows="3" class="block mt-1 w-full rounded-md shadow-sm border-gray-300" placeholder="Descripción del cultivo..."></textarea>
         </div>
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
             <div>
                 <label for="id_tipo_cultivo" class="block font-medium text-sm text-gray-700">Tipo de Cultivo *</label>
@@ -28,14 +37,34 @@
                     @endforeach
                 </select>
             </div>
-            <div>
-                <label for="imagen" class="block font-medium text-sm text-gray-700">Imagen del Cultivo</label>
-                <input type="file" name="imagen" id="imagen" class="block mt-1 w-full text-sm text-gray-500
-                    file:mr-4 file:py-2 file:px-4
-                    file:rounded-full file:border-0
-                    file:text-sm file:font-semibold
-                    file:bg-green-50 file:text-green-700
-                    hover:file:bg-green-100">
+
+            <div x-data="{ preview: null }">
+                <label for="imagen" class="block font-medium text-sm text-gray-700">
+                    Imagen del Cultivo
+                </label>
+
+                <input type="file"
+                    name="imagen"
+                    id="imagen"
+                    accept="image/*"
+                    @change="
+                            const file = $event.target.files[0];
+                            if (!file) return;
+                            const reader = new FileReader();
+                            reader.onload = e => preview = e.target.result;
+                            reader.readAsDataURL(file);
+                    "
+                    class="block mt-1 w-full text-sm text-gray-500
+                            file:mr-4 file:py-2 file:px-4
+                            file:rounded-full file:border-0
+                            file:text-sm file:font-semibold
+                            file:bg-green-50 file:text-green-700
+                            hover:file:bg-green-100">
+
+                <template x-if="preview">
+                    <img :src="preview"
+                        class="mt-4 max-h-48 rounded-lg border shadow-sm object-cover">
+                </template>
             </div>
         </div>
     </div>
@@ -48,21 +77,77 @@
                 <input type="number" name="tiempo_cosecha" id="tiempo_cosecha" class="block mt-1 w-full rounded-md shadow-sm border-gray-300" value="0">
             </div>
             <div>
+                <label for="id_tipo_siembra" class="block font-medium text-sm text-gray-700">Tipo de Siembra *</label>
+                <select name="id_tipo_siembra" id="id_tipo_siembra"
+                        class="block mt-1 w-full rounded-md shadow-sm border-gray-300" required>
+                    <option value="">Seleccionar tipo</option>
+                    @foreach($tiposSiembra as $tipo)
+                        <option value="{{ $tipo->id_tipo_siembra }}">
+                            {{ $tipo->nombre }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div>
+                <label for="id_periodo" class="block font-medium text-sm text-gray-700">Periodo *</label>
+                <select name="id_periodo" id="id_periodo"
+                        class="block mt-1 w-full rounded-md shadow-sm border-gray-300" required>
+                    <option value="">Seleccionar periodo</option>
+                    @foreach($periodos as $periodo)
+                        <option value="{{ $periodo->id_periodo }}">
+                            {{ $periodo->nombre }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div>
+                <label for="id_rango" class="block font-medium text-sm text-gray-700">Rango *</label>
+                <select name="id_rango" class="block mt-1 w-full rounded-md shadow-sm border-gray-300" required>
+                    <option value="">Seleccionar rango</option>
+                    @foreach($rangos as $rango)
+                        <option value="{{ $rango->id_rango }}"
+                            @selected(old('id_rango') == $rango->id_rango)>
+                            {{ $rango->nombre }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div>
+                <label for="id_dimension" class="block font-medium text-sm text-gray-700">Dimensión *</label>
+                <select name="id_dimension" class="block mt-1 w-full rounded-md shadow-sm border-gray-300">
+                    <option value="">Seleccionar dimensión</option>
+                    @foreach($dimensiones as $item)
+                        <option value="{{ $item->id_dimension }}"
+                            @selected(old('id_dimension', $cultivo->id_dimension ?? null) == $item->id_dimension)>
+                            {{ $item->altura }} x {{ $item->ancho }} x {{ $item->largo }} cm
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div>
                 <label for="tiempo_riego" class="block font-medium text-sm text-gray-700">Tiempo de Riego (días)</label>
                 <input type="number" name="tiempo_riego" id="tiempo_riego" class="block mt-1 w-full rounded-md shadow-sm border-gray-300" value="0">
             </div>
+
             <div>
                 <label for="profundidad_semilla" class="block font-medium text-sm text-gray-700">Profundidad de Siembra (cm)</label>
                 <input type="number" step="0.1" name="profundidad_semilla" id="profundidad_semilla" class="block mt-1 w-full rounded-md shadow-sm border-gray-300" value="0">
             </div>
+
             <div>
                 <label for="cantidad_de_plantas" class="block font-medium text-sm text-gray-700">Cantidad de Plantas</label>
                 <input type="number" name="cantidad_de_plantas" id="cantidad_de_plantas" class="block mt-1 w-full rounded-md shadow-sm border-gray-300" value="0">
             </div>
+
             <div>
                 <label for="costo" class="block font-medium text-sm text-gray-700">Costo Estimado</label>
                 <input type="number" step="0.01" name="costo" id="costo" class="block mt-1 w-full rounded-md shadow-sm border-gray-300" value="0">
             </div>
+
             <div class="flex items-center pt-6">
                 <input type="checkbox" name="iluminacion" id="iluminacion" value="1" class="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500">
                 <label for="iluminacion" class="ml-2 block text-sm text-gray-900">Requiere Iluminación Especial</label>
@@ -85,7 +170,11 @@
     </div>
 
     <div class="flex justify-end gap-4 mt-6 bg-white p-4 rounded-lg">
-        <button type="button" @click="$dispatch('close-modal')" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 font-semibold">Cancelar</button>
-        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 font-semibold">Crear Cultivo</button>
+        <button type="button" @click="$dispatch('close-modal')" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 font-semibold">
+            Cancelar
+        </button>
+        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 font-semibold">
+            Crear Cultivo
+        </button>
     </div>
 </form>

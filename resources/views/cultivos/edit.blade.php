@@ -20,7 +20,7 @@
             </a>
         </div>
         <div class="p-6">
-            <x-cultivo-edit-form :cultivo="$cultivo" :tiposCultivo="$tiposCultivo" />
+            <x-cultivo-edit-form :cultivo="$cultivo" :tiposCultivo="$tiposCultivo" :tiposSiembra="$tiposSiembra" :periodos="$periodos" :rangos="$rangos" :dimensiones="$dimensiones" />
         </div>
     </div>
 </div>

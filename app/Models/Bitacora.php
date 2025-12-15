@@ -29,6 +29,11 @@ class Bitacora extends Model
 
     public function siembra()
     {
-        return $this->belongsTo(Siembra::class);
+       return $this->belongsTo(Siembra::class)
+                    ->where('user_id', auth()->id());
+    }
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 }

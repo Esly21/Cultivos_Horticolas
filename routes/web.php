@@ -17,6 +17,7 @@ use App\Http\Controllers\PeriodoController;
 use App\Http\Controllers\RangoController;
 use App\Http\Controllers\DimensionController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\TipoSiembraController;
 Route::get('/', function () {
     return view('welcome');
 });
@@ -45,6 +46,7 @@ Route::get('/monitoreo', [MonitoreoController::class, 'index'])->name('monitoreo
     Route::delete('/dimensiones/{id}', [DimensionController::class, 'destroy'])->name('dimensiones.destroy');
     Route::post('/estados-siembra', [EstadoSiembraController::class, 'store'])->name('estados-siembra.store');
     Route::delete('/estados-siembra/{estadoSiembra}', [EstadoSiembraController::class, 'destroy'])->name('estados-siembra.destroy');
+    Route::resource('tipos-siembra', TipoSiembraController::class)->only(['store', 'destroy']);
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

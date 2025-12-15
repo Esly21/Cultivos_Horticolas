@@ -4,8 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use App\Models\VariableAmbiental; // 👈 Asegúrate de importar el modelo
-use App\Models\Alerta; // opcional, solo si ya existe
+use App\Models\VariableAmbiental;
+use App\Models\Alerta;
 use App\Models\User;
 use App\Models\Cultivo;
 use App\Models\EstadoSiembra;
@@ -34,15 +34,21 @@ class Siembra extends Model
         ];
     }
 
-    // === Relaciones existentes ===
+    // ================= RELACIONES =================
+
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    /**
+     * 🔒 RELACIÓN SEGURA
+     * Solo devuelve el cultivo si pertenece al usuario autenticado
+     */
     public function cultivo()
     {
-        return $this->belongsTo(Cultivo::class, 'cultivo_id', 'id');
+        return $this->belongsTo(Cultivo::class, 'cultivo_id', 'id')
+                    ->where('user_id', auth()->id());
     }
 
     public function estadoSiembra()
@@ -55,32 +61,29 @@ class Siembra extends Model
         return $this->hasMany(Bitacora::class);
     }
 
-    // === NUEVO: relación con variables ambientales ===
     public function variablesAmbientales()
     {
         return $this->hasMany(VariableAmbiental::class, 'siembra_id', 'id');
     }
 
-    // === NUEVO: última lectura (para el monitoreo) ===
     public function ultimaLectura()
     {
-        // Usa fecha_hora como campo de orden
         return $this->hasOne(VariableAmbiental::class, 'siembra_id', 'id')
                     ->latestOfMany('fecha_hora');
     }
 
-    // (Opcional) si tienes un modelo Alerta
     public function alertas()
     {
         return $this->hasMany(Alerta::class, 'siembra_id', 'id');
     }
+
     public function evaluacionRendimiento()
     {
-    return $this->hasOne(EvaluacionRendimiento::class);
-}
-public function evaluaciones()
-{
-    return $this->hasMany(EvaluacionRendimiento::class, 'siembra_id');
-}
+        return $this->hasOne(EvaluacionRendimiento::class, 'siembra_id');
+    }
 
+    public function evaluaciones()
+    {
+        return $this->hasMany(EvaluacionRendimiento::class, 'siembra_id');
+    }
 }

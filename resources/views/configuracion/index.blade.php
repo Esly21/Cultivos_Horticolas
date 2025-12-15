@@ -67,6 +67,7 @@
                                     <i data-lucide="plus" class="w-5 h-5"></i>
                                 </button>
                             </form>
+
                             <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
                                 @foreach($dimensiones as $dim)
                                     <div class="flex justify-between items-center p-3 border rounded-lg bg-gray-50">
@@ -81,7 +82,7 @@
                                 @endforeach
                             </div>
                         </div>
-
+                    <x-catalog-card title="Tipos de Siembra" :items="$tiposSiembra" route-store="tipos-siembra.store" route-destroy="tipos-siembra.destroy" primary-key="id_tipo_siembra" />
                     </div>
                 </div>
 

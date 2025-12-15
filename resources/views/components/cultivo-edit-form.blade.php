@@ -1,57 +1,152 @@
-@props(['cultivo', 'tiposCultivo'])
+@props([
+    'cultivo',
+    'tiposCultivo',
+    'tiposSiembra',
+    'periodos',
+    'rangos',
+    'dimensiones'
+])
 
-<form action="{{ route('cultivos.update', $cultivo) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+<form action="{{ route('cultivos.update', $cultivo->id) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
     @csrf
-    @method('PUT') {{-- Indica que es una actualización --}}
+    @method('PUT')
 
     <div class="bg-white p-8 rounded-lg">
         <h3 class="text-lg font-semibold text-gray-800 mb-4">Información Básica</h3>
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-                <label for="nombre_cientifico" class="block font-medium text-sm text-gray-700">Nombre Científico *</label>
-                <input type="text" name="nombre_cientifico" id="nombre_cientifico" value="{{ old('nombre_cientifico', $cultivo->nombre_cientifico) }}" class="block mt-1 w-full rounded-md shadow-sm border-gray-300" required>
+                <label class="block font-medium text-sm text-gray-700">Nombre Científico *</label>
+                <input type="text" name="nombre_cientifico"
+                       value="{{ old('nombre_cientifico', $cultivo->nombre_cientifico) }}"
+                       class="block mt-1 w-full rounded-md shadow-sm border-gray-300" required>
             </div>
+
             <div>
-                <label for="nombre_comun" class="block font-medium text-sm text-gray-700">Nombre Común *</label>
-                <input type="text" name="nombre_comun" id="nombre_comun" value="{{ old('nombre_comun', $cultivo->nombre_comun) }}" class="block mt-1 w-full rounded-md shadow-sm border-gray-300" required>
+                <label class="block font-medium text-sm text-gray-700">Nombre Común *</label>
+                <input type="text" name="nombre_comun"
+                       value="{{ old('nombre_comun', $cultivo->nombre_comun) }}"
+                       class="block mt-1 w-full rounded-md shadow-sm border-gray-300" required>
             </div>
         </div>
+
         <div class="mt-4">
-            <label for="descripcion" class="block font-medium text-sm text-gray-700">Descripción</label>
-            <textarea name="descripcion" id="descripcion" rows="3" class="block mt-1 w-full rounded-md shadow-sm border-gray-300">{{ old('descripcion', $cultivo->descripcion) }}</textarea>
+            <label class="block font-medium text-sm text-gray-700">Descripción</label>
+            <textarea name="descripcion" rows="3"
+                class="block mt-1 w-full rounded-md shadow-sm border-gray-300">{{ old('descripcion', $cultivo->descripcion) }}</textarea>
         </div>
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
             <div>
-                <label for="id_tipo_cultivo" class="block font-medium text-sm text-gray-700">Tipo de Cultivo *</label>
-                <select name="id_tipo_cultivo" id="id_tipo_cultivo" class="block mt-1 w-full rounded-md shadow-sm border-gray-300" required>
-                    <option value="">Seleccionar tipo</option>
+                <label class="block font-medium text-sm text-gray-700">Tipo de Cultivo *</label>
+                <select name="id_tipo_cultivo" class="block mt-1 w-full rounded-md shadow-sm border-gray-300" required>
                     @foreach($tiposCultivo as $tipo)
-                        <option value="{{ $tipo->id }}" @selected(old('id_tipo_cultivo', $cultivo->id_tipo_cultivo) == $tipo->id)>
+                        <option value="{{ $tipo->id }}"
+                            @selected($cultivo->id_tipo_cultivo == $tipo->id)>
                             {{ $tipo->nombre }}
                         </option>
                     @endforeach
-                </select>   
+                </select>
             </div>
-            <div>
-                <label for="imagen" class="block font-medium text-sm text-gray-700">Cambiar Imagen (Opcional)</label>
-                <input type="file" name="imagen" id="imagen" class="block mt-1 w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100">
-                @if($cultivo->imagen)
-                    <p class="text-xs text-gray-500 mt-1">Imagen actual: <a href="{{ asset('storage/' . $cultivo->imagen) }}" target="_blank" class="text-blue-500 hover:underline">Ver imagen</a></p>
-                @endif
+
+            <div x-data="{ preview: '{{ $cultivo->imagen ? asset('storage/'.$cultivo->imagen) : '' }}' }">
+                <label for="imagen" class="block font-medium text-sm text-gray-700">
+                    Imagen del Cultivo
+                </label>
+
+                <input type="file"
+                    name="imagen"
+                    id="imagen"
+                    accept="image/*"
+                    @change="
+                            const file = $event.target.files[0];
+                            if (!file) return;
+                            const reader = new FileReader();
+                            reader.onload = e => preview = e.target.result;
+                            reader.readAsDataURL(file);
+                    "
+                    class="block mt-1 w-full text-sm text-gray-500
+                            file:mr-4 file:py-2 file:px-4
+                            file:rounded-full file:border-0
+                            file:text-sm file:font-semibold
+                            file:bg-green-50 file:text-green-700
+                            hover:file:bg-green-100">
+
+                <template x-if="preview">
+                    <img :src="preview"
+                        class="mt-4 max-h-48 rounded-lg border shadow-sm object-cover">
+                </template>
             </div>
         </div>
     </div>
 
-    <div class="bg-white p-8 rounded-lg shadow-inner border">
+    <div class="bg-white p-8 rounded-lg">
         <h3 class="text-lg font-semibold text-gray-800 mb-4">Parámetros de Cultivo</h3>
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
                 <label for="tiempo_cosecha" class="block font-medium text-sm text-gray-700">Tiempo de Cosecha (días)</label>
-                <input type="number" name="tiempo_cosecha" id="tiempo_cosecha" value="{{ old('tiempo_cosecha', $cultivo->tiempo_cosecha) }}" class="block mt-1 w-full rounded-md shadow-sm border-gray-300">
+                <input type="number" name="tiempo_cosecha" id="tiempo_cosecha" class="block mt-1 w-full rounded-md shadow-sm border-gray-300" value="0">
             </div>
             <div>
-                <label for="tiempo_riego" class="block font-medium text-sm text-gray-700">Tiempo de Riego (días)</label>
-                <input type="number" name="tiempo_riego" id="tiempo_riego" value="{{ old('tiempo_riego', $cultivo->tiempo_riego) }}" class="block mt-1 w-full rounded-md shadow-sm border-gray-300">
+                <label class="block font-medium text-sm text-gray-700">Tipo de Siembra</label>
+                <select name="id_tipo_siembra"
+                        class="block mt-1 w-full rounded-md shadow-sm border-gray-300" required>
+                    <option value="">Seleccionar tipo</option>
+                    @foreach($tiposSiembra as $tipo)
+                        <option value="{{ $tipo->id_tipo_siembra }}"
+                            @selected($cultivo->id_tipo_siembra == $tipo->id_tipo_siembra)>
+                            {{ $tipo->nombre }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div>
+                <label class="block font-medium text-sm text-gray-700">Periodo</label>
+                <select name="id_periodo"
+                        class="block mt-1 w-full rounded-md shadow-sm border-gray-300" required>
+                    <option value="">Seleccionar periodo</option>
+                    @foreach($periodos as $periodo)
+                        <option value="{{ $periodo->id_periodo }}"
+                            @selected($cultivo->id_periodo == $periodo->id_periodo)>
+                            {{ $periodo->nombre }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div>
+                <label class="block font-medium text-sm text-gray-700">Rango</label>
+                <select name="id_rango" class="block mt-1 w-full rounded-md shadow-sm border-gray-300" required>
+                    <option value="">Seleccionar rango</option>
+                    @foreach($rangos as $rango)
+                        <option value="{{ $rango->id_rango }}"
+                            @selected(old('id_rango') == $rango->id_rango)>
+                            {{ $rango->nombre }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div>
+                <label class="block font-medium text-sm text-gray-700">Dimensión</label>
+                <select name="id_dimension" class="block mt-1 w-full rounded-md shadow-sm border-gray-300">
+                    <option value="">Seleccionar dimensión</option>
+                    @foreach($dimensiones as $item)
+                        <option value="{{ $item->id_dimension }}"
+                            @selected(old('id_dimension', $cultivo->id_dimension ?? null) == $item->id_dimension)>
+                            {{ $item->altura }} x {{ $item->ancho }} x {{ $item->largo }} cm
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div>
+                <label class="block font-medium text-sm text-gray-700">Tiempo de Riego (días)</label>
+                <input type="number" name="tiempo_riego"
+                       value="{{ old('tiempo_riego', $cultivo->tiempo_riego) }}"
+                       class="block mt-1 w-full rounded-md shadow-sm border-gray-300">
             </div>
             <div>
                 <label for="profundidad_semilla" class="block font-medium text-sm text-gray-700">Profundidad de Siembra (cm)</label>
@@ -72,22 +167,35 @@
         </div>
     </div>
 
-    <div class="bg-white p-8 rounded-lg shadow-inner border">
+    <div class="bg-white p-8 rounded-lg">
         <h3 class="text-lg font-semibold text-gray-800 mb-4">Ubicación</h3>
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-                <label for="sector" class="block font-medium text-sm text-gray-700">Sector</label>
-                <input type="text" name="sector" id="sector" value="{{ old('sector', $cultivo->sector) }}" class="block mt-1 w-full rounded-md shadow-sm border-gray-300">
+                <label class="block font-medium text-sm text-gray-700">Sector</label>
+                <input type="text" name="sector"
+                       value="{{ old('sector', $cultivo->sector) }}"
+                       class="block mt-1 w-full rounded-md shadow-sm border-gray-300">
             </div>
+
             <div>
-                <label for="parcela" class="block font-medium text-sm text-gray-700">Parcela</label>
-                <input type="text" name="parcela" id="parcela" value="{{ old('parcela', $cultivo->parcela) }}" class="block mt-1 w-full rounded-md shadow-sm border-gray-300">
+                <label class="block font-medium text-sm text-gray-700">Parcela</label>
+                <input type="text" name="parcela"
+                       value="{{ old('parcela', $cultivo->parcela) }}"
+                       class="block mt-1 w-full rounded-md shadow-sm border-gray-300">
             </div>
         </div>
     </div>
 
-    <div class="flex justify-end gap-4 mt-6 bg-white p-4 rounded-lg shadow-inner border">
-        <a href="{{ route('cultivos.index') }}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 font-semibold">Cancelar</a>
-        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 font-semibold">Actualizar Cultivo</button>
+    <div class="flex justify-end gap-4 mt-6 bg-white p-4 rounded-lg">
+        <a href="{{ route('cultivos.index') }}"
+           class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 font-semibold">
+            Cancelar
+        </a>
+
+        <button type="submit"
+            class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 font-semibold">
+            Actualizar Cultivo
+        </button>
     </div>
 </form>

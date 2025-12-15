@@ -34,14 +34,45 @@
             {{ $cultivo->descripcion ?? 'Sin descripción.' }}
         </p>
         
-        <div class="mt-4 pt-4 border-t text-sm text-gray-700 space-y-2">
-            <div class="flex items-center gap-2">
-                <i data-lucide="clock" class="w-4 h-4 text-gray-400"></i>
-                <span>Cosecha: {{ $cultivo->tiempo_cosecha ?? 'N/A' }} días</span>
+        <div class="flex flex-wrap gap-2 mb-4">
+            {{-- Ejemplo de etiqueta amarilla --}}
+            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                <i data-lucide="sun" class="w-3 h-3"></i>
+                Requiere luz
+            </span>
+            {{-- Ejemplo de etiqueta azul --}}
+            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                <i data-lucide="map-pin" class="w-3 h-3"></i>
+                Sector A
+            </span>
+        </div>
+
+        {{-- 3. GRID DE ESTADÍSTICAS (EL DISEÑO QUE PEDISTE) --}}
+        <div class="grid grid-cols-2 gap-y-3 gap-x-4 pt-4 border-t border-gray-100">
+            {{-- Tiempo --}}
+            <div class="flex items-center text-gray-700">
+                <i data-lucide="clock" class="w-4 h-4 text-gray-400 mr-2"></i>
+                <span> {{ $cultivo->tiempo_cosecha ?? 'N/A' }} días</span>
             </div>
-            <div class="flex items-center gap-2">
-                <i data-lucide="droplets" class="w-4 h-4 text-gray-400"></i>
-                <span>Riego: c/{{ $cultivo->tiempo_riego ?? 'N/A' }} días</span>
+            {{-- Costo (Nuevo) --}}
+            <div class="flex items-center text-gray-700">
+                <i data-lucide="dollar-sign" class="w-4 h-4 text-gray-400 mr-2"></i>
+                <span class="text-sm font-medium">
+                    ${{ number_format($cultivo->costo ?? 0, 0) }}
+                </span>
+            </div>
+
+            {{-- Riego --}}
+            <div class="flex items-center text-gray-700">
+                <i data-lucide="droplets" class="w-4 h-4 text-gray-400 mr-2"></i>
+                <span>c/{{ $cultivo->tiempo_riego ?? 'N/A' }} días</span>
+            </div>
+
+            {{-- Profundidad / Medida (Nuevo) --}}
+            <div class="flex items-center text-gray-700">
+                <i data-lucide="ruler" class="w-4 h-4 text-gray-400 mr-2"></i>
+                <span class="text-sm font-medium">
+                   {{ $cultivo->profundidad_semilla ?? 'N/A' }} cm</span>
             </div>
         </div>
     </div>

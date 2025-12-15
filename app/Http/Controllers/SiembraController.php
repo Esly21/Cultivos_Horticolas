@@ -41,7 +41,7 @@ class SiembraController extends Controller
     $siembras = $query->latest('fecha_inicio')->paginate(9);
 
     // 5. Datos para combos
-    $cultivos       = Cultivo::orderBy('nombre_comun')->get();
+    $cultivos       = Cultivo::where('user_id', Auth()->id())->orderBy('nombre_comun')->get();
     $estados        = EstadoSiembra::all();
     $tiposSuelo     = TipoSuelo::all();
     $calidades      = CalidadCosecha::all();
@@ -52,10 +52,9 @@ class SiembraController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            // --- CORRECCIÓN AQUÍ ---
-            // La validación debe apuntar a la columna 'id_cultivo' de la tabla 'cultivos'
-            'cultivo_id' => 'required|exists:cultivos,id', 
-            //'user_id' => 'required|exists:users,id',    
+            'cultivo_id' => [
+                'required', Rule::exists('cultivos', 'id')->where(function ($query) {
+            $query->where('user_id', Auth::id()); }),],
             'estado_siembra_id' => 'required|exists:estados_siembra,id',
             'fecha_inicio' => 'required|date',
             'fecha_cosecha_estimada' => 'nullable|date|after_or_equal:fecha_inicio',
@@ -86,8 +85,13 @@ class SiembraController extends Controller
     public function update(Request $request, Siembra $siembra)
     {
         $validatedData = $request->validate([
-            'cultivo_id' => 'required|exists:cultivos,id',
-            'estados_siembra_id' => 'required|exists:estados_siembra,id',
+            'cultivo_id' => [
+                'required',
+                Rule::exists('cultivos', 'id')->where(function ($query) {
+                    $query->where('user_id', Auth::id());
+                }),
+            ],
+            'estado_siembra_id' => 'required|exists:estados_siembra,id',
             'fecha_inicio' => 'required|date',
             'fecha_cosecha_estimada' => 'nullable|date|after_or_equal:fecha_inicio',
             'inversion' => 'nullable|numeric|min:0',

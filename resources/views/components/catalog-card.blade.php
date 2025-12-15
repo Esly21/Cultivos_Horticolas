@@ -1,4 +1,7 @@
-@props(['title', 'items', 'routeStore', 'routeDestroy', 'displayKey' => 'nombre', 'fieldName' => 'nombre', 'primaryKey' => 'id'])
+@props(['title', 'items', 'routeStore', 'routeDestroy', 'displayKey' => 'nombre', 'fieldName' => 'nombre' ])
+@php 
+    $primaryKey = $attributes->get('primary-key', 'id');
+@endphp
 
 <div class="bg-white p-6 rounded-lg shadow-sm border">
     <h2 class="text-xl font-bold mb-4 text-gray-800">{{ $title }}</h2>
