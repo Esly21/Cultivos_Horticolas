@@ -13,22 +13,40 @@ class EvaluacionController extends Controller
 {
   public function index()
 {
-    $evaluaciones = EvaluacionRendimiento::with(['siembra', 'tipoSuelo', 'calidad'])
-        ->orderBy('id', 'desc')
-        ->paginate(10);  // ← AQUÍ EL CAMBIO
+     $userId = auth()->id();
 
-   $siembrasPendientes = Siembra::doesntHave('evaluacionRendimiento')
-        ->with('cultivo')
+    // Evaluaciones filtradas por el usuario con paginación
+    $evaluaciones = EvaluacionRendimiento::whereHas('siembra', function ($q) use ($userId) {
+            $q->where('user_id', $userId);
+        })
+        ->with(['siembra', 'tipoSuelo', 'calidad'])
+        ->latest()
+        ->paginate(10);
+
+    // Siembras del usuario
+    $siembras = Siembra::where('user_id', $userId)->get();
+
+    // Siembras pendientes de evaluación: siembra sin evaluaciones
+    $siembrasPendientes = Siembra::where('user_id', $userId)
+        ->whereDoesntHave('evaluaciones')  // REQUIERE tener relación evaluaciones() en el modelo
         ->get();
+
     $tiposSuelo = TipoSuelo::all();
     $calidades = CalidadCosecha::all();
 
-    return view('evaluaciones.index', compact('evaluaciones', 'siembrasPendientes', 'tiposSuelo', 'calidades'));
+    return view('evaluaciones.index', compact(
+        'evaluaciones',
+        'siembras',
+        'siembrasPendientes',
+        'tiposSuelo',
+        'calidades'
+    ));
 }
     
 public function store(Request $request)
     {
         $request->validate([
+            'user_id'           => 'required|exists:users,id',
             'siembra_id'         => 'required|exists:siembras,id',
             'tipo_suelo_id'      => 'required|exists:tipos_suelos,id',
             'fecha_cosecha_real' => 'required|date',
@@ -43,6 +61,7 @@ public function store(Request $request)
         $dias = Carbon::parse($siembra->fecha_siembra)->diffInDays(Carbon::now());
 
         EvaluacionRendimiento::create([
+            'user_id'           => auth()->id(),
             'siembra_id'         => $request->siembra_id,
             'tipo_suelo_id'      => $request->tipo_suelo_id,
             'fecha_cosecha_real' => $request->fecha_cosecha_real,

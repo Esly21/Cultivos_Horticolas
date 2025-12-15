@@ -2,7 +2,7 @@
     {{-- Cabecera y Tarjetas de Estadísticas (se mantienen igual) --}}
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>
-            <h1 class="text-3xl font-bold text-gray-800">Home Agrícola</h1>
+            <h1 class="text-3xl font-bold text-gray-800">Gestión General </h1>
             <p class="text-gray-500 mt-1">Bienvenido, {{ Auth::user()->name }}</p>
         </div>
         <div class="text-sm text-gray-500 flex items-center gap-2 mt-4 md:mt-0">

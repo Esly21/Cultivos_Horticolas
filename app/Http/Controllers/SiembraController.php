@@ -14,32 +14,39 @@ class SiembraController extends Controller
 {
     public function index(Request $request)
     {
-       // 1. Inicia la consulta con las relaciones necesarias
-        $query = Siembra::with('cultivo', 'estadoSiembra');
+        // 1. Consulta base
+    $query = Siembra::with('cultivo', 'estadoSiembra');
 
-        // 2. Aplica el filtro de búsqueda si existe
-        if ($search = $request->input('search')) {
-            $query->where('notas', 'like', "%{$search}%")
-                  ->orWhere('id', 'like', "%{$search}%");
+    // 👉 Si NO es administrador (id_tipo_usuario = 1), filtrar por usuario
+    if (Auth::user()->id_tipo_usuario != 1) {
+        $query->where('user_id', Auth::id());
+    }
+
+    // 2. Filtro búsqueda
+    if ($search = $request->input('search')) {
+        $query->where(function ($q) use ($search) {
+            $q->where('notas', 'like', "%{$search}%")
+              ->orWhere('id', 'like', "%{$search}%");
+        });
+    }
+
+    // 3. Filtro estado
+    if ($estado = $request->input('estado')) {
+        if ($estado !== 'all') {
+            $query->where('estado_siembra_id', $estado);
         }
+    }
 
-        // 3. Aplica el filtro de estado si existe y no es 'all'
-        if ($estado = $request->input('estado')) {
-            if ($estado !== 'all') {
-                $query->where('estado_siembra_id', $estado);
-            }
-        }
+    // 4. Resultados paginados
+    $siembras = $query->latest('fecha_inicio')->paginate(9);
 
-        // 4. Obtiene los resultados de la consulta CON FILTROS, los ordena y pagina
-        $siembras = $query->latest('fecha_inicio')->paginate(9);
+    // 5. Datos para combos
+    $cultivos       = Cultivo::orderBy('nombre_comun')->get();
+    $estados        = EstadoSiembra::all();
+    $tiposSuelo     = TipoSuelo::all();
+    $calidades      = CalidadCosecha::all();
 
-        // 5. Obtiene los datos para los menús desplegables del formulario
-        $cultivos = Cultivo::orderBy('nombre_comun')->get();
-        $estados = EstadoSiembra::all();
-        $tiposSuelo = TipoSuelo::all();
-        $calidades = CalidadCosecha::all();
-        // 6. Envía todas las variables a la vista
-        return view('siembras.index', compact('siembras', 'cultivos', 'estados', 'tiposSuelo', 'calidades'));
+    return view('siembras.index', compact('siembras', 'cultivos', 'estados', 'tiposSuelo', 'calidades'));
     }
 
     public function store(Request $request)
@@ -48,6 +55,7 @@ class SiembraController extends Controller
             // --- CORRECCIÓN AQUÍ ---
             // La validación debe apuntar a la columna 'id_cultivo' de la tabla 'cultivos'
             'cultivo_id' => 'required|exists:cultivos,id', 
+            //'user_id' => 'required|exists:users,id',    
             'estado_siembra_id' => 'required|exists:estados_siembra,id',
             'fecha_inicio' => 'required|date',
             'fecha_cosecha_estimada' => 'nullable|date|after_or_equal:fecha_inicio',

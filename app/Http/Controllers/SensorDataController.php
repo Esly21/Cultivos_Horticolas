@@ -51,6 +51,7 @@ class SensorDataController extends Controller
     try {
         VariableAmbiental::create([
             'siembra_id' => $request->device_id,
+            'user_id' => $siembraUserId,
             'temperatura' => $request->temperatura,
             'humedad' => $request->humedad_ambiente,
             'luminosidad_lux' => $request->luz,
@@ -74,6 +75,7 @@ class SensorDataController extends Controller
     // 3. Crear registro en Bitácora
     Bitacora::create([
         'siembra_id' => $request->device_id,
+        'user_id' => $siembraUserId,
         'fecha_seguimiento' => now(),
         'temperatura_actual' => $request->temperatura,
         'humedad_actual' => $request->humedad_ambiente,
@@ -84,6 +86,7 @@ class SensorDataController extends Controller
     if ($request->temperatura > 30) {
         Alerta::create([
             'siembra_id' => $request->device_id,
+            'user_id' => $siembraUserId,
             'mensaje' => 'Temperatura elevada: ' . $request->temperatura . '°C',
             'severidad' => 'critical',
             'fecha' => now(),
@@ -94,6 +97,7 @@ class SensorDataController extends Controller
     if ($request->humedad_ambiente < 40) {
         Alerta::create([
             'siembra_id' => $request->device_id,
+            'user_id' => $siembraUserId,
             'mensaje' => 'Humedad baja: ' . $request->humedad_ambiente . '%',
             'severidad' => 'warning',
             'fecha' => now(),
@@ -105,6 +109,7 @@ class SensorDataController extends Controller
         if ($valor < 30) { 
             Alerta::create([
                 'siembra_id' => $siembraId,
+                 'user_id' => $siembraUserId,
                 'mensaje' => "Humedad baja en charola {$zona}: " . number_format($valor, 1) . '%',
                 'severidad' => 'warning',
                 'fecha' => now(),
@@ -114,6 +119,7 @@ class SensorDataController extends Controller
         if ($valor > 80) {
             Alerta::create([
                 'siembra_id' => $siembraId,
+                 'user_id' => $siembraUserId,
                 'mensaje' => "Humedad alta en charola {$zona}: " . number_format($valor, 1) . '%',
                 'severidad' => 'critical',
                 'fecha' => now(),

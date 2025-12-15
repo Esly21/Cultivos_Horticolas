@@ -96,6 +96,10 @@
                             <label class="font-medium text-sm text-gray-700">Correo Electrónico</label>
                             <p class="mt-1 text-gray-900 font-medium p-2 bg-gray-50 rounded border">{{ $user->email }}</p>
                         </div>
+                        <div>
+                            <label class="font-medium text-sm text-gray-700">Rol</label>
+                            <p class="mt-1 text-gray-900 font-medium p-2 bg-gray-50 rounded border">{{ $user->tipoUsuario->nombre ?? 'Sin definir' }}</p>
+                        </div>
                         <a href="{{ route('profile.edit') }}" class="inline-flex items-center gap-2 mt-4 text-blue-600 hover:text-blue-800 font-medium">
                             <i data-lucide="user-cog" class="w-4 h-4"></i>
                             Editar mi perfil

@@ -13,6 +13,7 @@ class VariableAmbiental extends Model
     // Añadimos los nuevos campos a $fillable
     protected $fillable = [
         'siembra_id',
+        'user_id',
         'temperatura',
         'humedad',
         'luminosidad_lux',

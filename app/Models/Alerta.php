@@ -11,6 +11,7 @@ class Alerta extends Model
 
     protected $fillable = [
         'siembra_id',
+        'user_id',
         'mensaje',
         'severidad',
         'fecha',

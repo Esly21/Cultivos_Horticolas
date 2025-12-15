@@ -37,7 +37,7 @@ class Siembra extends Model
     // === Relaciones existentes ===
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function cultivo()
@@ -78,4 +78,9 @@ class Siembra extends Model
     {
     return $this->hasOne(EvaluacionRendimiento::class);
 }
+public function evaluaciones()
+{
+    return $this->hasMany(EvaluacionRendimiento::class, 'siembra_id');
+}
+
 }

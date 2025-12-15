@@ -12,6 +12,7 @@ class Bitacora extends Model
 
     protected $fillable = [
         'siembra_id',
+        'user_id',
         'fecha_seguimiento',
         'crecimiento',
         'observaciones',

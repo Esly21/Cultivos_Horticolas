@@ -13,6 +13,7 @@ class EvaluacionRendimiento extends Model
     use HasFactory;
     protected $table = 'evaluaciones_rendimientos';
     protected $fillable = [
+        'user_id',
         'siembra_id', 
         'tipo_suelo_id', 
         'fecha_cosecha_real', 
@@ -40,5 +41,9 @@ class EvaluacionRendimiento extends Model
     public function calidad()
     {
         return $this->belongsTo(CalidadCosecha::class, 'calidad_id');
+    }
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 }

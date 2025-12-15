@@ -9,6 +9,8 @@ use App\Models\TipoSuelo;
 use App\Models\Periodo;
 use App\Models\Rango;
 use App\Models\Dimension;
+use App\Models\User;
+use App\Models\TipoUsuario;
 class ConfiguracionController extends Controller
 {
     /**
@@ -16,7 +18,7 @@ class ConfiguracionController extends Controller
      */
     public function index()
     {
-        $user = auth()->user();
+        $user = auth()->user()->load('tipoUsuario');
         $tiposCultivo = TipoCultivo::all();
         $estadosSiembra = EstadoSiembra::all();
         $tiposSuelo = TipoSuelo::all();

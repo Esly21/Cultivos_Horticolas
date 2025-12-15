@@ -46,7 +46,7 @@
                                     </div>
                                     Monitoreo en tiempo real
                                 </dt>
-                                <dd class="mt-2 text-base leading-7 text-gray-600">Sensores que registran temperatura, humedad y pH las 24 horas del día, accesibles desde cualquier lugar.</dd>
+                                <dd class="mt-2 text-base leading-7 text-gray-600">Sensores que registran temperatura, humedad, y luminosidad las 24 horas del día, accesibles desde cualquier lugar.</dd>
                             </div>
                             <div class="relative pl-16">
                                 <dt class="text-base font-semibold leading-7 text-gray-900">
@@ -64,7 +64,7 @@
                                     </div>
                                     Histórico de datos
                                 </dt>
-                                <dd class="mt-2 text-base leading-7 text-gray-600">Analiza el crecimiento de tus cultivos con gráficos y reportes automáticos semanales.</dd>
+                                <dd class="mt-2 text-base leading-7 text-gray-600">Analiza el crecimiento de tus cultivos con gráficos y reportes    semanales.</dd>
                             </div>
                             <div class="relative pl-16">
                                 <dt class="text-base font-semibold leading-7 text-gray-900">

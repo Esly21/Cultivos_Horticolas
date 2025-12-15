@@ -70,6 +70,14 @@
             icon="settings" 
             title="Configuración" 
             description="Ajustes del sistema" />
+        @if(auth()->user()->id_tipo_usuario == 1)
+            <x-nav-link 
+                :href="route('admin.users.index')" 
+                :active="request()->routeIs('admin.users.*')" 
+                icon="users" 
+                title="Usuarios" 
+                description="Gestión de usuarios" />
+        @endif
 
     </nav>
 

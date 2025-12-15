@@ -16,6 +16,7 @@ use App\Http\Controllers\TipoSueloController;
 use App\Http\Controllers\PeriodoController;
 use App\Http\Controllers\RangoController;
 use App\Http\Controllers\DimensionController;
+use App\Http\Controllers\Admin\UserController;
 Route::get('/', function () {
     return view('welcome');
 });
@@ -52,6 +53,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/monitoreo/historico/{siembra}', [MonitoreoController::class, 'getHistoricos'])->name('monitoreo.historico');
     Route::get('/evaluaciones', [EvaluacionController::class, 'index'])->name('evaluaciones.index');
     Route::post('/evaluaciones', [EvaluacionController::class, 'store'])->name('evaluaciones.store');
+    Route::get('/admin/users', [UserController::class, 'index'])->name('admin.users.index');
+    Route::delete('/admin/users/{user}', [UserController::class, 'destroy'])->name('admin.users.destroy');
 });
 
 require __DIR__.'/auth.php';
