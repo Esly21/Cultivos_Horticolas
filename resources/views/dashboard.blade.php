@@ -1,8 +1,8 @@
 <x-app-layout>
-    {{-- Cabecera y Tarjetas de Estadísticas (se mantienen igual) --}}
+    {{-- Cabecera y Tarjetas de Estadísticas --}}
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>
-            <h1 class="text-3xl font-bold text-gray-800">Gestión General </h1>
+            <h1 class="text-3xl font-bold text-gray-800">Gestión General</h1>
             <p class="text-gray-500 mt-1">Bienvenido, {{ Auth::user()->name }}</p>
         </div>
         <div class="text-sm text-gray-500 flex items-center gap-2 mt-4 md:mt-0">
@@ -23,9 +23,10 @@
     {{-- CONTENIDO PRINCIPAL --}}
     <div class="grid lg:grid-cols-3 gap-8">
         
-        {{-- COLUMNA IZQUIERDA (2/3): SIEMBRAS --}}
+        {{-- COLUMNA IZQUIERDA (2/3): SIEMBRAS Y EVALUACIONES --}}
         <div class="lg:col-span-2 space-y-6">
-            {{-- Tarjeta de Siembras Recientes --}}
+            
+            {{-- 1. Tarjeta de Siembras Recientes --}}
             <div class="bg-white p-6 rounded-lg shadow-sm border">
                 <h2 class="font-bold text-lg mb-4 flex items-center gap-2">
                     <i data-lucide="leaf" class="text-green-600"></i>
@@ -70,8 +71,8 @@
                                         <p class="text-xs text-gray-500 italic truncate">{{ $siembra->cultivo->nombre_cientifico ?? '' }}</p>
                                     </div>
                                      <span class="text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap {{ $statusColor }}">
-                                        {{ $status }}
-                                    </span>
+                                         {{ $status }}
+                                     </span>
                                 </div>
                                 <div class="flex items-center gap-4 text-xs text-gray-500">
                                     <div class="flex items-center gap-1">
@@ -95,7 +96,69 @@
                     @endforelse
                 </div>
             </div>
-        </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-sm border">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="font-bold text-lg flex items-center gap-2">
+                        <i data-lucide="clipboard-check" class="text-indigo-600"></i>
+                        Evaluación de Rendimiento Recientes
+                    </h2>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    @forelse($evaluacionesRecientes ?? [] as $evaluacion)
+                        <div class="border rounded-lg p-4 hover:bg-gray-50 transition-all group">
+                            <div class="flex justify-between items-start mb-2">
+                                <div class="flex items-center gap-2">
+                                    {{-- Icono pequeño --}}
+                                    <div class="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600">
+                                        <i data-lucide="sprout" class="w-4 h-4"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold text-gray-800 text-sm line-clamp-1">
+                                            {{ $evaluacion->siembra->cultivo->nombre_comun ?? 'Cultivo' }}
+                                        </h3>
+                                        <p class="text-[10px] text-gray-500 uppercase tracking-wide">
+                                            {{-- CORREGIDO: Usamos fecha_cosecha_real --}}
+                                            {{ \Carbon\Carbon::parse($evaluacion->fecha_cosecha_real)->locale('es')->translatedFormat('d M Y') }}
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                {{-- Badge de Cantidad Cosechada (Datos reales de tu tabla) --}}
+                                <span class="px-2 py-1 text-xs font-bold rounded bg-green-100 text-green-700 whitespace-nowrap">
+                                    {{ number_format($evaluacion->cantidad_cosechada, 0) }} {{ $evaluacion->unidad_medida }}
+                                </span>
+                            </div>
+
+                            <div class="mt-2 text-sm text-gray-600 space-y-1">
+                                {{-- Mostramos ingresos estimados si existen --}}
+                                @if($evaluacion->ingresos_estimados > 0)
+                                    <div class="flex items-center gap-1 text-xs text-green-600 font-medium">
+                                        <i data-lucide="dollar-sign" class="w-3 h-3"></i>
+                                        Ingreso est: ${{ number_format($evaluacion->ingresos_estimados, 2) }}
+                                    </div>
+                                @endif
+
+                                <p class="line-clamp-2 italic text-xs">
+                                    "{{ $evaluacion->observaciones ?? 'Sin observaciones.' }}"
+                                </p>
+                            </div>
+
+                            <div class="mt-3 pt-3 border-t flex justify-between items-center text-xs text-gray-400">
+                                <span>Por: {{ $evaluacion->user->name ?? 'Sistema' }}</span>
+                                <i data-lucide="chevron-right" class="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="col-span-1 md:col-span-2 text-center py-6 border-2 border-dashed rounded-lg bg-gray-50">
+                            <p class="text-gray-400 text-sm">No hay evaluaciones de rendimiento registradas.</p>
+                        </div>
+                    @endforelse
+                </div>
+            </div>
+
+        </div> {{-- Fin Columna Izquierda --}}
 
         {{-- COLUMNA DERECHA (1/3): MONITOREO Y ALERTAS --}}
         <div class="space-y-8">
@@ -110,8 +173,8 @@
                     <span class="text-xs text-gray-500">
                         {{ $ultimoMonitoreo->fecha_hora ? $ultimoMonitoreo->fecha_hora->diffForHumans() : 'Sin datos' }}
                     </span>
-                    <a href="{{ route('monitoreo.index') }}" class="btn-swipe">
-                        Ver detalles
+                    <a href="{{ route('monitoreo.index') }}" class="btn-swipe text-sm text-blue-600 hover:underline">
+                        Detalles
                     </a>
                 </div>
                 
@@ -147,7 +210,7 @@
                         </p>
                     </div>
 
-                    {{-- Humedad Charola 2 --}}
+                    {{-- Charolas restantes --}}
                     <div class="p-3 bg-green-50 rounded-lg border border-green-100">
                         <div class="flex items-center gap-2 mb-1">
                             <i data-lucide="droplet" class="w-4 h-4 text-green-600"></i>
@@ -157,8 +220,6 @@
                             {{ number_format($ultimoMonitoreo->humedad_charola2, 0) }}%
                         </p>
                     </div>
-
-                    {{-- Humedad Charola 3 --}}
                     <div class="p-3 bg-green-50 rounded-lg border border-green-100">
                         <div class="flex items-center gap-2 mb-1">
                             <i data-lucide="droplet" class="w-4 h-4 text-green-600"></i>
@@ -168,8 +229,6 @@
                             {{ number_format($ultimoMonitoreo->humedad_charola3, 0) }}%
                         </p>
                     </div>
-
-                    {{-- Humedad Charola 4 --}}
                     <div class="p-3 bg-green-50 rounded-lg border border-green-100">
                         <div class="flex items-center gap-2 mb-1">
                             <i data-lucide="droplet" class="w-4 h-4 text-green-600"></i>
@@ -182,14 +241,14 @@
                 </div>
             </div>
 
-            {{-- 2. Alertas Recientes (AHORA EN LA COLUMNA DERECHA) --}}
+            {{-- 2. Alertas Recientes --}}
             <div class="bg-white p-6 rounded-lg shadow-sm border">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="font-bold text-lg flex items-center gap-2">
                         <i data-lucide="alert-triangle" class="text-orange-600"></i>
                         Alertas Recientes
                     </h2>
-                    <a href="{{ route('alertas.index') }}" class="btn-swipe">
+                    <a href="{{ route('alertas.index') }}" class="btn-swipe text-sm text-orange-600 hover:underline">
                         Ver todas
                     </a>
                 </div>

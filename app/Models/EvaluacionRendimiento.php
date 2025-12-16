@@ -20,6 +20,7 @@ class EvaluacionRendimiento extends Model
         'dias_transcurridos', 
         'cantidad_cosechada', 
         'unidad_medida',
+        'ingresos_estimados',
         'calidad_id', 
         'tamano_promedio', 
         'tipo_cosecha', 

@@ -7,6 +7,7 @@ use App\Models\Siembra;
 use App\Models\Cultivo;
 use App\Models\Alerta;
 use App\Models\VariableAmbiental;
+use App\Models\EvaluacionRendimiento;
 //use Illuminate\Support\Facades\Auth;
 class DashboardController extends Controller
 {
@@ -31,7 +32,7 @@ class DashboardController extends Controller
                                         ->where('leida', false)
                                         ->count(),
             'inversionTotal'    => Siembra::where('user_id', $userId)->sum('inversion'),
-            'ingresosEstimados' => 0,
+            'ingresosEstimados' => EvaluacionRendimiento::where('user_id', $userId)->sum('ingresos_estimados'),
         ];
 
         // Últimas siembras del usuario
@@ -64,12 +65,16 @@ class DashboardController extends Controller
                 'ph_suelo'         => 0,
             ]);
         }
-
+        $evaluacionesRecientes = EvaluacionRendimiento::with(['siembra.cultivo', 'user']) // Eager loading para optimizar
+        ->latest('created_at') // O created_at
+        ->take(4) // Muestra solo las últimas 4
+        ->get();
         return view('dashboard', compact(
             'stats',
             'siembrasRecientes',
             'alertasRecientes',
-            'ultimoMonitoreo'
+            'ultimoMonitoreo',
+            'evaluacionesRecientes'
         ));
     }
     /**

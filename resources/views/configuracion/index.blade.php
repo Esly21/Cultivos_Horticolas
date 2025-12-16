@@ -82,7 +82,7 @@
                                 @endforeach
                             </div>
                         </div>
-                    <x-catalog-card title="Tipos de Siembra" :items="$tiposSiembra" route-store="tipos-siembra.store" route-destroy="tipos-siembra.destroy" primary-key="id_tipo_siembra" />
+                        <x-catalog-card title="Tipos de Siembra" :items="$tiposSiembra" route-store="tipos-siembra.store" route-destroy="tipos-siembra.destroy" primary-key="id_tipo_siembra" />
                     </div>
                 </div>
 
