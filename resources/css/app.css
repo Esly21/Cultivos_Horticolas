@@ -5,6 +5,9 @@
 /* -----------------------------------------------------
    TARJETAS CON ANIMACIÓN (stats-card)
 ----------------------------------------------------- */
+[x-cloak] { 
+  display: none !important; 
+}
 
 .stats-card p.small {
   font-size: 14px;

@@ -101,7 +101,7 @@
                     </div>
                     <div>
                         <label for="edit_estado_siembra_id" class="block font-medium text-sm text-gray-700">Estado *</label>
-                        <select name="estados_siembra_id" id="edit_estado_siembra_id" x-model="editingSiembra.estados_siembra_id" class="block mt-1 w-full rounded-md shadow-sm border-gray-300" required>
+                        <select name="estado_siembra_id" id="edit_estado_siembra_id" x-model="editingSiembra.estado_siembra_id" class="block mt-1 w-full rounded-md shadow-sm border-gray-300" required>
                             <option value="">Seleccionar estado</option>
                             @foreach($estados as $estado)
                                 <option value="{{ $estado->id }}">{{ $estado->estado }}</option>

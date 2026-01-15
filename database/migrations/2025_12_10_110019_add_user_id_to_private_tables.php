@@ -45,6 +45,13 @@ return new class extends Migration
                 }
             });
         }
+        if (Schema::hasTable('Cosechas')) {
+            Schema::table('Cosechas', function (Blueprint $table) {
+                if (!Schema::hasColumn('Cosechas', 'user_id')) {
+                    $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade')->after('id');
+                }
+            });
+        }
     }
 
     /**
@@ -79,6 +86,13 @@ return new class extends Migration
         if (Schema::hasTable('alertas')) {
             Schema::table('alertas', function (Blueprint $table) {
                 if (Schema::hasColumn('alertas', 'user_id')) {
+                    $table->dropConstrainedForeignId('user_id');
+                }
+            });
+        }
+        if (Schema::hasTable('Cosechas')) {
+            Schema::table('Cosechas', function (Blueprint $table) {
+                if (Schema::hasColumn('Cosechas', 'user_id')) {
                     $table->dropConstrainedForeignId('user_id');
                 }
             });

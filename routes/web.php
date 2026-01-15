@@ -11,13 +11,14 @@ use App\Http\Controllers\ReporteController;
 use App\Http\Controllers\ConfiguracionController;
 use App\Http\Controllers\TipoCultivoController;
 use App\Http\Controllers\EstadoSiembraController;
-use App\Http\Controllers\EvaluacionController;
+use App\Http\Controllers\CosechaController;
 use App\Http\Controllers\TipoSueloController;
 use App\Http\Controllers\PeriodoController;
 use App\Http\Controllers\RangoController;
 use App\Http\Controllers\DimensionController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\TipoSiembraController;
+use App\Http\Controllers\EvaluacionController;
 Route::get('/', function () {
     return view('welcome');
 });
@@ -48,16 +49,21 @@ Route::get('/monitoreo', [MonitoreoController::class, 'index'])->name('monitoreo
     Route::delete('/estados-siembra/{estadoSiembra}', [EstadoSiembraController::class, 'destroy'])->name('estados-siembra.destroy');
     Route::resource('tipos-siembra', TipoSiembraController::class)->only(['store', 'destroy']);
 Route::middleware('auth')->group(function () {
-    Route::resource('evaluaciones', EvaluacionController::class)->except(['create', 'edit', 'update']);
+    Route::resource('cosechas', CosechaController::class)->except(['create', 'edit', 'update']);
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::get('/monitoreo/latest/{siembra}', [MonitoreoController::class, 'getLatestData'])->name('monitoreo.latest');
     Route::get('/monitoreo/historico/{siembra}', [MonitoreoController::class, 'getHistoricos'])->name('monitoreo.historico');
-    Route::get('/evaluaciones', [EvaluacionController::class, 'index'])->name('evaluaciones.index');
-    Route::post('/evaluaciones', [EvaluacionController::class, 'store'])->name('evaluaciones.store');
+    Route::get('/cosechas', [CosechaController::class, 'index'])->name('cosechas.index');
+    Route::post('/cosechas', [CosechaController::class, 'store'])->name('cosechas.store');
     Route::get('/admin/users', [UserController::class, 'index'])->name('admin.users.index');
     Route::delete('/admin/users/{user}', [UserController::class, 'destroy'])->name('admin.users.destroy');
+    Route::get('/evaluaciones', [EvaluacionController::class, 'index'])->name('evaluaciones.index');
+    Route::post('/evaluaciones', [EvaluacionController::class, 'store'])->name('evaluaciones.store');
+    Route::post('/evaluaciones/calcular', [EvaluacionController::class, 'calcular'])->name('evaluaciones.calcular');
+    Route::post('/evaluaciones/{evaluacion}/pdf', [EvaluacionController::class, 'exportarPdf'])->name('evaluaciones.pdf');
+    Route::get('/evaluaciones/historico', [EvaluacionController::class, 'historico'])->name('evaluaciones.historico');
 });
 
 require __DIR__.'/auth.php';

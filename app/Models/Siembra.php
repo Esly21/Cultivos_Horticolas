@@ -10,8 +10,8 @@ use App\Models\User;
 use App\Models\Cultivo;
 use App\Models\EstadoSiembra;
 use App\Models\Bitacora;
-use App\Models\EvaluacionRendimiento;
-
+use App\Models\Evaluacion;
+use App\Models\Cosecha;
 class Siembra extends Model
 {
     use HasFactory;
@@ -77,13 +77,14 @@ class Siembra extends Model
         return $this->hasMany(Alerta::class, 'siembra_id', 'id');
     }
 
-    public function evaluacionRendimiento()
+    public function cosechas()
     {
-        return $this->hasOne(EvaluacionRendimiento::class, 'siembra_id');
+        // Asumiendo que tienes un modelo llamado Cosecha en App\Models\Cosecha
+        return $this->hasMany(Cosechas::class, 'siembra_id', 'id');
     }
-
-    public function evaluaciones()
+    public function evaluacion()
     {
-        return $this->hasMany(EvaluacionRendimiento::class, 'siembra_id');
-    }
+        return $this->hasOne(Evaluacion::class, 'siembras_ids', 'id')
+                    ->where('user_id', auth()->id());
+    }   
 }

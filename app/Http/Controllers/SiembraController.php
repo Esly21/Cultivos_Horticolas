@@ -18,10 +18,10 @@ class SiembraController extends Controller
     $query = Siembra::with('cultivo', 'estadoSiembra');
 
     // 👉 Si NO es administrador (id_tipo_usuario = 1), filtrar por usuario
-    if (Auth::user()->id_tipo_usuario != 1) {
+    /*if (Auth::user()->id_tipo_usuario != 1) {
         $query->where('user_id', Auth::id());
-    }
-
+    }*/
+        $query->where('user_id', Auth::id());
     // 2. Filtro búsqueda
     if ($search = $request->input('search')) {
         $query->where(function ($q) use ($search) {

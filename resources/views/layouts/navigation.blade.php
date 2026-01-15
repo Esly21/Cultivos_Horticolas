@@ -57,12 +57,17 @@
             description="Bitácoras y reportes" />
 
         <x-nav-link 
+            :href="route('cosechas.index')" 
+            :active="request()->routeIs('cosechas.*')" 
+            icon="clipboard-check"
+            title="Cosechas" 
+            description="Resultados de cosecha" />
+        <x-nav-link 
             :href="route('evaluaciones.index')" 
             :active="request()->routeIs('evaluaciones.*')" 
-            icon="clipboard-check"
+            icon="activity"
             title="Evaluaciones" 
-            description="Resultados de cosecha" />
-
+            description="Rendimiento de siembras" />
         <!-- ESTE ERA EL QUE ESTABA MAL ANIDADO -->
         <x-nav-link 
             :href="route('configuracion.index')" 

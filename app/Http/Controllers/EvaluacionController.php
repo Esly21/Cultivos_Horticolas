@@ -2,115 +2,214 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\EvaluacionRendimiento;
+use App\Models\Evaluacion;
+use App\Models\Cultivo;
 use App\Models\Siembra;
-use Carbon\Carbon;
-use App\Models\TipoSuelo;
-use App\Models\CalidadCosecha;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Str;
 
 class EvaluacionController extends Controller
 {
-  public function index(Request $request)
-{
-    $userId = auth()->id();
+    /* =====================================================
+     | INDEX
+     ===================================================== */
+    public function index()
+    {
+        $userId = Auth::id();
 
-    // 1. Preparamos la consulta base (sin ejecutarla aún)
-    $query = EvaluacionRendimiento::where('user_id', $userId)
-        ->with(['siembra.cultivo', 'tipoSuelo', 'calidad']);
-
-    // 2. Si hay búsqueda, filtramos la consulta
-    if ($search = $request->input('search')) {
-        $query->where(function($q) use ($search) {
-            $q->whereHas('siembra.cultivo', function($sq) use ($search) {
-                $sq->where('nombre_comun', 'like', "%{$search}%");
-            })
-            ->orWhereHas('tipoSuelo', function($sq) use ($search) {
-                $sq->where('nombre', 'like', "%{$search}%");
-            });
-        });
+        return view('evaluaciones.index', [
+            'cultivos' => Cultivo::where('user_id', $userId)->get(),
+            'siembras' => Siembra::with('cultivo')
+                ->where('user_id', $userId)
+                ->get(),
+            'evaluaciones' => Evaluacion::with('cultivo')
+                ->where('user_id', $userId)
+                ->latest()
+                ->get(), // NO paginate (tabs)
+        ]);
     }
 
-    // 3. Calculamos los totales usando la consulta YA FILTRADA
-    // Usamos 'clone' para no romper la paginación que viene después
-    $totalEvaluaciones = (clone $query)->count();
-    $promedioRendimiento = (clone $query)->avg('cantidad_cosechada');
-    $totalIngresos = (clone $query)->sum('ingresos_estimados');
-    
-    // Contamos calidad "Buena" respetando el filtro
-    $mejorCalidadCount = (clone $query)
-        ->whereHas('calidad', fn($q) => $q->where('nombre', 'Buena'))
-        ->count();
-
-    // 4. Finalmente obtenemos la lista paginada para la tabla
-    $evaluaciones = $query->latest()->paginate(10);
-
-    // Datos para el formulario (Modales)
-    $siembras = Siembra::where('user_id', $userId)->get();
-    $siembrasPendientes = Siembra::where('user_id', $userId)
-        ->whereDoesntHave('evaluaciones')
-        ->get();
-    $tiposSuelo = TipoSuelo::all();
-    $calidades = CalidadCosecha::all();
-
-    return view('evaluaciones.index', compact(
-        'evaluaciones',
-        'siembras',
-        'siembrasPendientes',
-        'tiposSuelo',
-        'calidades',
-        'totalEvaluaciones',
-        'promedioRendimiento',
-        'mejorCalidadCount',
-        'totalIngresos'
-    ));
-}
-    
-public function store(Request $request)
+    /* =====================================================
+     | CALCULAR (AJAX)
+     ===================================================== */
+    public function calcular(Request $request)
     {
         $request->validate([
-        // 'user_id' => 'required|exists:users,id',  <-- ESTA LINEA CAUSABA EL ERROR
-        'siembra_id'         => 'required|exists:siembras,id',
-        'tipo_suelo_id'      => 'required|exists:tipos_suelos,id',
-        'fecha_cosecha_real' => 'required|date',
-        'cantidad_cosechada' => 'required|numeric|min:0',
-        'ingresos_estimados' => 'required|numeric|min:0',
-        'calidad_id'         => 'required|exists:calidad_cosechas,id',
-        'tamano_promedio'    => 'required|string',
-        'tipo_cosecha'       => 'required|string',
-        'observaciones'      => 'nullable|string', // Es bueno validar observaciones como opcional
-    ]);
+            'siembras'   => 'required|array|min:2',
+            'siembras.*' => 'exists:siembras,id',
+        ]);
 
-    // 2. Lógica para calcular días
-    $siembra = Siembra::find($request->siembra_id);
-    
-    // CORRECCIÓN RECOMENDADA: Calcula los días con la fecha real de cosecha, no con "ahora"
-    // Si usas Carbon::now() y registras la evaluación una semana después, el cálculo será incorrecto.
-    $fechaCosecha = Carbon::parse($request->fecha_cosecha_real);
-    $dias = Carbon::parse($siembra->fecha_siembra)->diffInDays($fechaCosecha);
+        $siembras = Siembra::with([
+                'cultivo',
+                'cosechas.calidad',
+                'variablesAmbientales'
+            ])
+            ->whereIn('id', $request->siembras)
+            ->where('user_id', Auth::id())
+            ->get();
 
-    // 3. Crear el registro (Aquí asignamos el user_id manualmente)
-    EvaluacionRendimiento::create([
-        'user_id'            => auth()->id(), // <--- Aquí ya se asigna correctamente
-        'siembra_id'         => $request->siembra_id,
-        'tipo_suelo_id'      => $request->tipo_suelo_id,
-        'fecha_cosecha_real' => $request->fecha_cosecha_real,
-        'cantidad_cosechada' => $request->cantidad_cosechada,
-        'ingresos_estimados' => $request->ingresos_estimados,
-        'calidad_id'         => $request->calidad_id,
-        'tamano_promedio'    => $request->tamano_promedio,
-        'tipo_cosecha'       => $request->tipo_cosecha,
-        'observaciones'      => $request->observaciones,
-        'dias_transcurridos' => $dias,
-    ]);
+        $detalle = [];
 
-    return redirect()->back()->with('success', 'Evaluación registrada correctamente');
+        foreach ($siembras as $s) {
+
+            $ingresos = $s->cosechas->sum('ingresos_estimados');
+            $cantidad = $s->cosechas->sum('cantidad_cosechada');
+            $inversion = $s->inversion ?? 0;
+            $rentabilidad = $ingresos - $inversion;
+
+            $ultimaCosecha = $s->cosechas->last();
+            $fechaCosecha = $ultimaCosecha?->fecha_cosecha_real;
+
+            $calidad = 'N/A';
+            if ($ultimaCosecha && $ultimaCosecha->calidad) {
+                $calidad = $ultimaCosecha->calidad->nombre
+                    ?? $ultimaCosecha->calidad->calidad
+                    ?? 'N/A';
+            }
+
+            $temp = $s->variablesAmbientales->count()
+                ? round($s->variablesAmbientales->avg('temperatura'), 1)
+                : 0;
+
+            $hum = $s->variablesAmbientales->count()
+                ? round($s->variablesAmbientales->avg('humedad'), 1)
+                : 0;
+
+            $dias = 0;
+            if ($s->fecha_inicio) {
+                $inicio = $s->fecha_inicio;
+                $fin = $fechaCosecha ?? now();
+                $dias = $inicio->diffInDays($fin);
+            }
+
+            $nombreCultivo = $s->cultivo?->nombre_comun ?? 'Siembra';
+            $fechaInicio = $s->fecha_inicio?->format('d/m') ?? '';
+            $label = "{$nombreCultivo} ({$fechaInicio})";
+
+            $detalle[] = [
+                'siembra_id'   => $s->id,
+                'label'        => $label,
+                'inversion'    => (float) $inversion,
+                'ingresos'     => (float) $ingresos,
+                'rentabilidad' => (float) $rentabilidad,
+                'cantidad'     => (float) $cantidad,
+                'temperatura'  => (float) $temp,
+                'humedad'      => (float) $hum,
+                'calidad'      => $calidad,
+                'dias'         => $dias,
+            ];
+        }
+
+        $col = collect($detalle);
+
+        return response()->json([
+            'resumen' => [
+                'inversion_promedio' => round($col->avg('inversion'), 2),
+                'ingresos_promedio'  => round($col->avg('ingresos'), 2),
+                'cantidad_promedio'  => round($col->avg('cantidad'), 2),
+                'temperatura'        => round($col->avg('temperatura'), 1),
+                'humedad'            => round($col->avg('humedad'), 1),
+            ],
+            'detalle' => $detalle,
+        ]);
     }
-    public function destroy($id)
+
+    /* =====================================================
+     | STORE
+     ===================================================== */
+    public function store(Request $request)
     {
-        $evaluacion = EvaluacionRendimiento::where('user_id', auth()->id())->findOrFail($id);
-        $evaluacion->delete();
-        return redirect()->back()->with('success', 'Evaluación eliminada correctamente.');
+        $validated = $request->validate([
+            'nombre'       => 'required|string|max:150',
+            'cultivo_id'   => 'required|exists:cultivos,id',
+            'siembras_ids' => 'required|array|min:2',
+            'resultado'    => 'required|array',
+            'notas'        => 'nullable|string',
+        ]);
+
+        $evaluacion = Evaluacion::create([
+            'user_id'      => Auth::id(),
+            'cultivo_id'   => $validated['cultivo_id'],
+            'nombre'       => $validated['nombre'],
+            'notas'        => $validated['notas'] ?? null,
+            'siembras_ids' => $validated['siembras_ids'],
+            'resultado'    => $validated['resultado'],
+        ]);
+
+        return response()->json([
+            'message' => 'Evaluación guardada correctamente',
+            'id'      => $evaluacion->id,
+        ]);
     }
-    
+
+    /* =====================================================
+     | EXPORTAR PDF
+     ===================================================== */
+public function exportarPdf(Request $request, $id)
+{
+    try {
+        // 1. Cargar evaluación con relaciones necesarias
+        $evaluacion = Evaluacion::with('cultivo', 'user')->findOrFail($id);
+
+        // 2. Extraer resumen y detalle del resultado JSON
+        $resultado = $evaluacion->resultado ?? [];
+        $resumen = $resultado['resumen'] ?? [];
+        $detalle = $resultado['detalle'] ?? [];
+
+        // 3. Procesar imágenes Base64
+        $chartsBase64 = array_filter($request->only([
+            'ingresos', 'rentabilidad', 'cantidad', 'temperatura', 'humedad',
+        ]));
+        $charts = [];
+
+        foreach ($chartsBase64 as $key => $base64) {
+            if (str_starts_with($base64, 'data:image')) {
+                [, $data] = explode(',', $base64);
+            } else {
+                $data = $base64;
+            }
+
+            $imageData = base64_decode($data);
+            if ($imageData === false) {
+                throw new \Exception("Error decodificando imagen Base64 para {$key}");
+            }
+
+            $charts[$key] = 'data:image/png;base64,' . base64_encode($imageData);
+        }
+        // 4. Generar PDF
+        $pdf = Pdf::setOptions([
+            'isRemoteEnabled' => true,
+            'isHtml5ParserEnabled' => true,
+        ])->loadView('evaluaciones.pdf', [
+            'evaluacion' => $evaluacion,
+            'usuario' => $evaluacion->user,
+            'resumen' => $resumen,
+            'detalle' => $detalle,
+            'charts' => $charts, // YA ESTÁ AQUÍ, CONFIRMA QUE NO LO BORRES
+        ]);
+
+        // 5. Descargar
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf->output();
+        }, 'Evaluacion_' . $evaluacion->nombre . '.pdf');
+
+    } catch (\Exception $e) {
+        \Log::error('Error generando PDF: ' . $e->getMessage());
+        return response()->json(['error' => 'Error generando el PDF: ' . $e->getMessage()], 500);
+    }
+}
+    /* =====================================================
+     | HISTÓRICO (opcional)
+     ===================================================== */
+    public function historico()
+    {
+        $evaluaciones = Evaluacion::with('cultivo')
+            ->where('user_id', Auth::id())
+            ->latest()
+            ->paginate(10);
+
+        return view('evaluaciones.historico', compact('evaluaciones'));
+    }
 }

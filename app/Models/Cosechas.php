@@ -7,11 +7,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\Siembra;
 use App\Models\TipoSuelo;
 use App\Models\CalidadCosecha;
-class EvaluacionRendimiento extends Model
+class Cosechas extends Model
 {
     
     use HasFactory;
-    protected $table = 'evaluaciones_rendimientos';
+    protected $table = 'cosechas';
     protected $fillable = [
         'user_id',
         'siembra_id', 
